@@ -5,7 +5,7 @@ const CHARS_PER_LEVEL = 3;
 let HSK = [];
 
 async function loadHSK() {
-  const res = await fetch("../data/hsk1.json");
+  const res = await fetch("/data/hsk1.json");
   HSK = await res.json();
 }
 
@@ -129,15 +129,9 @@ function renderPath() {
     <button id='srs' onclick='startSrsSession()'>SRS</button>
 
     <button class="srs-size-btn" onclick="toggleSrsSize()" id="srs-size-btn">SRS: ${getSrsLimit()}</button>
-    <div id="srs-size-menu" class="srs-size-menu" style="display:none">
-      <button class="select-srs-size-btn" onclick="selectSrsSize(5)">5</button>
-      <button class="select-srs-size-btn" onclick="selectSrsSize(10)">10</button>
-      <button class="select-srs-size-btn" onclick="selectSrsSize(25)">25</button>
-      <button class="select-srs-size-btn" onclick="selectSrsSize(50)">50</button>
-    </div>
-
     <button class="dev-toggle" onclick="toggleRestore()">⚙️</button>
     <button class="stats-toggle" onclick="toggleSrsCalendar()">📊</button>
+
     <div id="srs-calendar" style="display:none"></div>
 
     <div id="restore-panel" style="display:none">
@@ -149,6 +143,14 @@ function renderPath() {
       />
       <button class="restore-rom-input-btn" onclick="restoreFromInput()">Save</button>
     </div>
+
+    <div id="srs-size-menu" class="srs-size-menu" style="display:none">
+      <button class="select-srs-size-btn" onclick="selectSrsSize(5)">5</button>
+      <button class="select-srs-size-btn" onclick="selectSrsSize(10)">10</button>
+      <button class="select-srs-size-btn" onclick="selectSrsSize(25)">25</button>
+      <button class="select-srs-size-btn" onclick="selectSrsSize(50)">50</button>
+    </div>
+
 
     <div class='path' id='path'></div>
   `;

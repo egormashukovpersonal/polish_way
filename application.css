@@ -196,11 +196,15 @@ button.locked {
 }
 
 #restore-panel {
-  margin-bottom: 12px;
+  margin-bottom: 40px;
   display: flex;
   gap: 8px;
 }
 #restore-panel input {
   flex: 1;
   font-size: 36px;
+}
+
+.srs-size-menu {
+  margin-bottom: 40px;
 }

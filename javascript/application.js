@@ -14,7 +14,7 @@ const app = document.getElementById("app");
 
 function router() {
   const hash = location.hash;
-  const srsBtn = document.getElementById("srs");
+  const srsBtn = document.getElementById("srs-btn");
 
   if (!hash || hash === "#") {
     renderPath();
@@ -126,11 +126,12 @@ function renderPath() {
   const totalLevels = Math.ceil(maxId / CHARS_PER_LEVEL);
 
   app.innerHTML = `
-    <button id='srs' onclick='startSrsSession()'>SRS</button>
-
-    <button class="srs-size-btn" onclick="toggleSrsSize()" id="srs-size-btn">SRS: ${getSrsLimit()}</button>
-    <button class="dev-toggle" onclick="toggleRestore()">⚙️</button>
-    <button class="stats-toggle" onclick="toggleSrsCalendar()">📊</button>
+    <div class="fixed-bottom">
+      <button id='srs-btn' onclick='startSrsSession()'>SRS</button>
+      <button class="stats-toggle" onclick="toggleSrsCalendar()">📊</button>
+      <button class="dev-toggle" onclick="toggleRestore()">⚙️</button>
+      <button class="srs-size-btn" onclick="toggleSrsSize()" id="srs-size-btn">SRS: ${getSrsLimit()}</button>
+    </div>
 
     <div id="srs-calendar" style="display:none"></div>
 
@@ -322,15 +323,17 @@ function renderLevel(level, index = 0) {
   const isLast = index >= chars.length - 1;
 
   app.innerHTML = `
-    <button class="back-btn" onclick="goBack(${level}, ${index})">← Back</button>
+    <div class="fixed-bottom">
+      <button class="back-btn" onclick="goBack(${level}, ${index})">←</button>
+      ${
+        !isLast
+          ? `<button class="next-btn" onclick="location.hash='#/level/${level}/${index + 1}'">→</button>`
+          : `<button class="next-btn" onclick="finishLevel(${level})">✓</button>`
+      }
+      <button class="speak-btn" onclick="speak('${c.hanzi}')">🔊</button>
+    </div>
 
-    ${
-      !isLast
-        ? `<button class="next-btn" onclick="location.hash='#/level/${level}/${index + 1}'">Next →</button>`
-        : `<button class="next-btn" onclick="finishLevel(${level})">Finish level ✓</button>`
-    }
-
-    <h2 class="header-h2">Level ${level}</h2>
+    <h1>Level ${level}</h1>
 
     <div class="char-card">
       <div class="progress">${index + 1} / ${chars.length}</div>
@@ -339,7 +342,6 @@ function renderLevel(level, index = 0) {
       <div id="meaning" style="display:none">
         <div class="pinyin-row">
           <span class="pinyin">${c.pinyin}</span>
-          <button class="speak-btn" onclick="speak('${c.hanzi}')">🔊</button>
         </div>
 
         <div class="section">Перевод: ${c.ru_translations.join(", ")}</div>
@@ -395,20 +397,24 @@ function renderSrs() {
   const { chars, index } = session;
   const c = chars[index];
 
+  if (!c) {
+    return;
+  }
   const isLast = index >= chars.length - 1;
 
   app.innerHTML = `
-    <button class="back-btn" onclick="location.hash = '#';">← Back</button>
+    <div class="fixed-bottom">
+      <button class="back-btn" onclick="location.hash = '#';">←</button>
+      <button class="ignore-btn" onclick="ignoreCurrentSrsChar()">
+        -
+      </button>
+      <button class="next-srs-btn"  onclick="nextSrs()">
+        ${isLast ? "✓" : "→"}
+      </button>
+      <button class="speak-btn" onclick="speak('${c.hanzi}')">🔊</button>
+    </div>
 
-    <button class="ignore-btn" onclick="ignoreCurrentSrsChar()">
-      Ignore
-    </button>
-
-    <button class="next-srs-btn"  onclick="nextSrs()">
-      ${isLast ? "Finish ✓" : "Next →"}
-    </button>
-
-    <h2 class='header-h2'>SRS</h2>
+    <h1>SRS</h1>
 
     <div class="char-card">
       <div class="progress">${index + 1} / ${chars.length}</div>
@@ -417,20 +423,19 @@ function renderSrs() {
       <div id="meaning" style="display:none">
         <div class="pinyin-row">
           <span class="pinyin">${c.pinyin}</span>
-          <button class="speak-btn" onclick="speak('${c.hanzi}')">🔊</button>
         </div>
 
         <div class="section">Перевод: ${c.ru_translations.join(", ")}</div>
         <div class="section">Translation: ${c.translations.join(", ")}</div>
         <div class="section">Homonyms: ${c.homonyms}</div>
 
-        <h2>Description</h2>
+        <h1>Description</h1>
         <div class="section">${c.description || ""}</div>
 
-        <h2>Philosophy</h2>
+        <h1>Philosophy</h1>
         <div class="section">${c.philosophy || ""}</div>
 
-        <h2>Usage Examples</h2>
+        <h1>Usage Examples</h1>
         <div class="section">${c.usage_example || ""}</div>
       </div>
     </div>
@@ -440,6 +445,7 @@ function renderSrs() {
   toggleBtn.onclick = () => {
     toggleBtn.style.display = 'none'
     document.getElementById("meaning").style.display = "block";
+
   };
 }
 

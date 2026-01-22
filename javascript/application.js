@@ -345,8 +345,6 @@ function renderLevel(level, index = 0) {
           <span class="polish_word">${c.polish_word}</span>
         </div>
 
-        <div class="section">Перевод: ${c.polish_word}</div>
-
         <h1>Usage</h1>
         <p class="section">${c.usage_example || ""}</p>
 

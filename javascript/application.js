@@ -87,12 +87,8 @@ function restoreFromInput() {
 }
 
 function restoreProgressToLevel(level) {
-  const progress = {
-    completedLevels: {},
-    srsHistory: {},
-    ignoredFromSrs: {},
-    settings: {}
-  };
+  const progress = getProgress();
+  progress.completedLevels ||= {};
 
   for (let i = 1; i < level; i++) {
     progress.completedLevels[i] = true;
@@ -150,13 +146,13 @@ function renderPath() {
     <div id="srs-calendar" style="display:none"></div>
 
     <div id="restore-panel" style="display:none">
-      <input
-        type="number"
-        id="restore-level"
-        placeholder="Start from level"
-        min="1"
-      />
+      <h1>Open levels til</h1>
+      <input type="number" id="restore-level" placeholder="Open levels til" min="1"/>
       <button class="restore-rom-input-btn" onclick="restoreFromInput()">Save</button>
+
+      <h1>Ignore levels til</h1>
+      <input type="number" id="ignore-level" placeholder="Ignore levels til" min="1"/>
+      <button class="ignore-rom-input-btn" onclick="ignoreSrsUntilLevel()">Save</button>
     </div>
 
     <div id="srs-size-menu" class="srs-size-menu" style="display:none">
@@ -196,6 +192,32 @@ function renderPath() {
   }
 }
 
+
+function ignoreSrsUntilLevel() {
+  const level = parseInt(
+    document.getElementById("ignore-level")?.value,
+    10
+  )
+
+  if (!Number.isInteger(level) || level < 2) return
+
+  const progress = getProgress()
+
+  progress.ignoredFromSrs ||= {}
+  progress.completedLevels ||= {};
+
+  for (let i = 1; i < level; i++) {
+    progress.completedLevels[i] = true;
+
+    for (const char of getCharsForLevel(i)) {
+      progress.ignoredFromSrs[char.polish_word] = true
+    }
+  }
+
+  saveProgress(progress)
+  location.hash = "#";
+  window.location.reload();
+}
 
 function getPolishPreviewForLevel(level) {
   return getCharsForLevel(level)
@@ -501,6 +523,7 @@ function renderLevel(level, index = 0) {
   const full = document.getElementById("meaning-full");
 
   toggleBtn.onclick = () => {
+    speak(c.polish_word);
     masked.style.display = "none";
     full.style.display = "block";
     toggleBtn.style.display = "none";
@@ -582,6 +605,7 @@ function renderSrs() {
   const full = document.getElementById("meaning-full");
 
   toggleBtn.onclick = () => {
+    speak(c.polish_word);
     masked.style.display = "none";
     full.style.display = "block";
     toggleBtn.style.display = "none";

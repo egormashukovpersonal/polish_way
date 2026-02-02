@@ -219,6 +219,9 @@ button.locked {
 .restore-rom-input-btn {
   width: 20%;
 }
+.ignore-rom-input-btn {
+  width: 20%;
+}
 
 #restore-panel {
   margin-bottom: 40px;

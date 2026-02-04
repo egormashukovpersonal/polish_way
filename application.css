@@ -79,10 +79,6 @@ button {
   font-size: 60px;
 }
 
-button:hover {
-  background: #2a2a2a;
-}
-
 @media (max-width: 600px) {
   button {
     font-size: 12px;
@@ -116,10 +112,17 @@ button:hover {
 
 #toggle-meaning {
   position: fixed;
-  width: 100%;
+  width: calc(70% - 20px);
   z-index: 99;
   bottom: 300px;
-  left: 0px;
+  left: 20px;
+}
+#reveal-letter {
+  position: fixed;
+  width: calc(30% - 20px - 20px);
+  z-index: 99;
+  bottom: 300px;
+  right: 20px;
 }
 
 .polish_word-row {
@@ -137,7 +140,6 @@ button:hover {
   width: 20%;
   float: right;
   margin-right: 2%;
-  background: #303030 !important;
 }
 
 button.completed {

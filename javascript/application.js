@@ -3,6 +3,7 @@ const TURN_LENGTH = 0;
 const WORDS_PER_LEVEL = 10;
 
 let HSK = [];
+let revealIndex = 0;
 
 async function loadHSK() {
   const res = await fetch("./data/result_shuffled.json");
@@ -122,6 +123,18 @@ function selectSrsSize(value) {
 
   document.getElementById("srs-size-menu").style.display = "none";
 }
+
+function revealWordStep(usage, word, step) {
+  if (!usage || !word) return usage;
+
+  const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const revealed =
+    word.slice(0, step) + "*".repeat(Math.max(0, word.length - step));
+
+  const regex = new RegExp(escaped, "gi");
+  return usage.replace(regex, revealed);
+}
+
 
 function renderPath() {
   const maxId = Math.max(...HSK.map(c => c.id));
@@ -500,7 +513,10 @@ function renderLevel(level, index = 0) {
     <div class="char-card">
       <div class="progress">${index + 1} / ${chars.length}</div>
       <div class="russian_translation">${c.russian_translation}</div>
-      <button id="toggle-meaning" class="secondary-btn">Open</button>
+      <div class="polish_word-row">
+        <button id="reveal-letter" class="secondary-btn">+</button>
+        <button id="toggle-meaning" class="secondary-btn">Open</button>
+      </div>
 
       <div id="example-masked" style="display:block">
         <p class="section">${maskWordInUsage(c.usage_example, c.polish_word) || ""}</p>
@@ -519,6 +535,7 @@ function renderLevel(level, index = 0) {
   `;
 
   const toggleBtn = document.getElementById("toggle-meaning");
+  const revealBtn = document.getElementById("reveal-letter");
   const masked = document.getElementById("example-masked");
   const full = document.getElementById("meaning-full");
 
@@ -527,7 +544,29 @@ function renderLevel(level, index = 0) {
     masked.style.display = "none";
     full.style.display = "block";
     toggleBtn.style.display = "none";
+    revealBtn.style.display = "none";
   };
+
+  revealIndex = 0;
+
+  revealBtn.onclick = () => {
+    revealIndex++;
+
+    const text = revealWordStep(
+      c.usage_example,
+      c.polish_word,
+      revealIndex
+    );
+
+    masked.innerHTML = `<p class="section">${text}</p>`;
+
+    // если слово раскрыто полностью — прячем кнопку
+    if (revealIndex >= c.polish_word.length) {
+      revealBtn.style.display = "none";
+      toggleBtn.click();
+    }
+  };
+
 }
 
 function ignoreCurrentSrsChar() {
@@ -582,7 +621,10 @@ function renderSrs() {
     <div class="char-card">
       <div class="progress">${index + 1} / ${chars.length}</div>
       <div class="russian_translation">${c.russian_translation}</div>
-      <button id="toggle-meaning" class="secondary-btn">Open</button>
+      <div class="polish_word-row">
+        <button id="reveal-letter" class="secondary-btn">+</button>
+        <button id="toggle-meaning" class="secondary-btn">Open</button>
+      </div>
 
       <div id="example-masked" style="display:block">
         <p class="section">${maskWordInUsage(c.usage_example, c.polish_word) || ""}</p>
@@ -601,6 +643,7 @@ function renderSrs() {
   `;
 
   const toggleBtn = document.getElementById("toggle-meaning");
+  const revealBtn = document.getElementById("reveal-letter");
   const masked = document.getElementById("example-masked");
   const full = document.getElementById("meaning-full");
 
@@ -609,8 +652,28 @@ function renderSrs() {
     masked.style.display = "none";
     full.style.display = "block";
     toggleBtn.style.display = "none";
+    revealBtn.style.display = "none";
   };
 
+  revealIndex = 0;
+
+  revealBtn.onclick = () => {
+    revealIndex++;
+
+    const text = revealWordStep(
+      c.usage_example,
+      c.polish_word,
+      revealIndex
+    );
+
+    masked.innerHTML = `<p class="section">${text}</p>`;
+
+    // если слово раскрыто полностью — прячем кнопку
+    if (revealIndex >= c.polish_word.length) {
+      revealBtn.style.display = "none";
+      toggleBtn.click();
+    }
+  };
 }
 
 function maskWordInUsage(usage, word) {

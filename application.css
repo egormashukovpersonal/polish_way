@@ -30,6 +30,7 @@ body {
   gap: 24px;
   padding-right: 20px;
   min-width: 100%;
+  padding-bottom: 800px;
 }
 
 .row {
@@ -64,6 +65,7 @@ body {
   height: auto;
   min-height: 150px;
   min-width: 150px;
+  font-size: 50px;
 }
 
 button {
@@ -95,7 +97,7 @@ button {
   text-align: center;
 }
 .section {
-  font-size: 50px;
+  font-size: 60px;
 }
 
 .progress {

@@ -294,8 +294,12 @@ function createRowFromLevels(container, direction, levels) {
       : [...levels].reverse();
 
   const count = orderedLevels.length;
+  const nextAvailable = getNextAvailableLevel();
 
   orderedLevels.forEach((lvl, index) => {
+    if (lvl > nextAvailable) {
+      return;
+    }
     const cell = document.createElement("div");
     cell.className = "cell";
 
@@ -327,8 +331,6 @@ function createRowFromLevels(container, direction, levels) {
       btn.classList.add("completed");
     }
 
-    const nextAvailable = getNextAvailableLevel();
-
     if (lvl > nextAvailable) {
       btn.classList.add("locked");
       btn.disabled = true;
@@ -342,11 +344,17 @@ function createRowFromLevels(container, direction, levels) {
     cell.appendChild(btn);
     row.appendChild(cell);
   });
-
-  container.appendChild(row);
+  if (row.innerHTML) {
+    container.appendChild(row);
+  }
 }
 
-
+function scrollBottom() {
+  window.scrollTo({
+    top: 999999,
+    behavior: "instant"
+  });
+}
 function createRow(container, direction, start, end) {
   const row = document.createElement("div");
   row.className = "row";
@@ -501,13 +509,15 @@ function goBack(level, index) {
     location.hash = `#/level/${level}/${index - 1}`;
   } else {
     location.hash = "#";
+    setTimeout(scrollBottom, 0);
   }
 }
 
 function finishLevel(level) {
   markLevelCompleted(level);
   location.hash = "#";
-  window.location.reload();
+  // window.location.reload();
+  setTimeout(scrollBottom, 0);
 }
 
 function renderLevel(level, index = 0) {
@@ -625,7 +635,7 @@ function renderSrs() {
 
   app.innerHTML = `
     <div class="fixed-bottom">
-      <button class="back-btn" onclick="location.hash = '#';">←</button>
+      <button class="back-btn" onclick="location.hash = '#';setTimeout(scrollBottom, 0);">←</button>
       <button class="ignore-btn" onclick="ignoreCurrentSrsChar()">
         -
       </button>
@@ -731,7 +741,8 @@ function markSrsSeen() {
 function finishSrsSession() {
   localStorage.removeItem("srsSession");
   location.hash = "#";
-  window.location.reload();
+  // window.location.reload();
+  setTimeout(scrollBottom, 0);
 }
 
 function toggleSrsCalendar() {
@@ -847,7 +858,6 @@ document.addEventListener("touchend", e => {
   touchEndX = e.changedTouches[0].screenX;
   handleSwipe();
 });
-
 
 (async function init() {
   await loadHSK();

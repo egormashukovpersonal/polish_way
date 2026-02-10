@@ -99,6 +99,10 @@ function restoreProgressToLevel(level) {
   location.hash = "#";
   window.location.reload();
 }
+function getHumanSrsLimit() {
+  const limit = getSrsLimit();
+  return limit == 9999999 ? 'All' : limit;
+}
 
 function getSrsLimit() {
   const progress = getProgress();
@@ -108,7 +112,7 @@ function getSrsLimit() {
 function setSrsLimit(value) {
   const progress = getProgress();
   progress.settings ||= {};
-  progress.settings.srsLimit = value;
+  progress.settings.srsLimit = value == 'All' ? 9999999 : value;
   saveProgress(progress);
 }
 function toggleSrsSize() {
@@ -153,7 +157,7 @@ function renderPath() {
       <button class="stats-toggle" onclick="toggleSrsCalendar()">▦</button>
       <button class="dev-toggle" onclick="toggleRestore()">⚙︎</button>
       <button class="toggle-translations" onclick="toggleHomeTranslations()">🅰︎</button>
-      <button class="srs-size-btn" onclick="toggleSrsSize()" id="srs-size-btn">${getSrsLimit()}</button>
+      <button class="srs-size-btn" onclick="toggleSrsSize()" id="srs-size-btn">${getHumanSrsLimit()}</button>
     </div>
 
     <div id="srs-calendar" style="display:none"></div>
@@ -173,6 +177,8 @@ function renderPath() {
       <button class="select-srs-size-btn" onclick="selectSrsSize(10)">10</button>
       <button class="select-srs-size-btn" onclick="selectSrsSize(25)">25</button>
       <button class="select-srs-size-btn" onclick="selectSrsSize(50)">50</button>
+      <button class="select-srs-size-btn" onclick="selectSrsSize('All')">All</button>
+      <button class="srs-reset-ignored" onclick="resetIgnoredSrs()">Reset ignored</button>
     </div>
 
 
@@ -263,6 +269,19 @@ function getWordsPreviewForLevel(level) {
   return filtered.map((c, i) =>
       usePolish ? `<div>${c.polish_word}</div>` : `<div>${c.russian_translation}</div>`
     ).join("");
+}
+
+function resetIgnoredSrs() {
+  const progress = getProgress();
+
+  if (progress.ignoredFromSrs) {
+    delete progress.ignoredFromSrs;
+    saveProgress(progress);
+  }
+  document.getElementById("srs-size-menu").style.display = "none";
+
+  location.hash = "#";
+  window.location.reload();
 }
 
 function createRowFromLevels(container, direction, levels) {

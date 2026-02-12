@@ -1,6 +1,6 @@
 const LEVELS_PER_ROW = 4;
 const TURN_LENGTH = 0;
-const WORDS_PER_LEVEL = 10;
+const WORDS_PER_LEVEL = 1;
 
 let HSK = [];
 let revealIndex = 0;
@@ -9,13 +9,6 @@ async function loadHSK() {
   const res = await fetch("./data/result_shuffled.json");
   HSK = await res.json();
 }
-
-
-(function initPreviewSettings() {
-  if (localStorage.getItem("usePolish") === null) {
-    localStorage.setItem("usePolish", "false");
-  }
-})();
 
 const app = document.getElementById("app");
 
@@ -156,7 +149,6 @@ function renderPath() {
       <button id='srs-btn' onclick='startSrsSession()'>SRS</button>
       <button class="stats-toggle" onclick="toggleSrsCalendar()">▦</button>
       <button class="dev-toggle" onclick="toggleRestore()">⚙︎</button>
-      <button class="toggle-translations" onclick="toggleHomeTranslations()">🅰︎</button>
       <button class="srs-size-btn" onclick="toggleSrsSize()" id="srs-size-btn">${getHumanSrsLimit()}</button>
     </div>
 
@@ -229,7 +221,7 @@ function ignoreSrsUntilLevel() {
     progress.completedLevels[i] = true;
 
     for (const char of getCharsForLevel(i)) {
-      progress.ignoredFromSrs[char.polish_word] = true
+      progress.ignoredFromSrs[char.id] = true
     }
   }
 
@@ -237,14 +229,6 @@ function ignoreSrsUntilLevel() {
   location.hash = "#";
   window.location.reload();
 }
-
-function getPolishPreviewForLevel(level) {
-  return getCharsForLevel(level)
-    .filter(c => !isIgnoredFromSrs(c.polish_word))
-    .map(c => c.polish_word)
-    .join("");
-}
-
 
 function getCharsForLevel(level) {
   const startId = (level - 1) * WORDS_PER_LEVEL + 1;
@@ -256,18 +240,11 @@ function isLevelEmpty(level) {
   return getWordsPreviewForLevel(level).length === 0;
 }
 
-function toggleHomeTranslations() {
-  const current = localStorage.getItem("usePolish") !== "false";
-  localStorage.setItem("usePolish", current ? "false" : "true");
-  renderPath();
-}
-
 function getWordsPreviewForLevel(level) {
-  let usePolish = localStorage.getItem("usePolish") !== "false";
-  let filtered = getCharsForLevel(level).filter(c => !isIgnoredFromSrs(c.polish_word))
+  let filtered = getCharsForLevel(level).filter(c => !isIgnoredFromSrs(c.id))
 
   return filtered.map((c, i) =>
-      usePolish ? `<div>${c.polish_word}</div>` : `<div>${c.russian_translation}</div>`
+      `${c.pl}`
     ).join("");
 }
 
@@ -312,7 +289,7 @@ function createRowFromLevels(container, direction, levels) {
 
     if (isLevelCompleted(lvl)) {
       const polish = document.createElement("div");
-      polish.innerHTML = getWordsPreviewForLevel(lvl);
+      polish.innerHTML = lvl;
       btn.appendChild(polish);
     }
 
@@ -375,7 +352,7 @@ function createRow(container, direction, start, end) {
     if (isLevelCompleted(lvl)) {
       const polish = document.createElement("div");
       polish.className = "level-polish";
-      polish.innerHTML = getWordsPreviewForLevel(lvl);
+      polish.innerHTML = lvl;
       btn.appendChild(polish);
     } else {
       btn.textContent = lvl;
@@ -435,7 +412,7 @@ function getAllLearnedChars() {
     chars.push(...getCharsForLevel(level));
   });
 
-  return chars.filter(c => !isIgnoredFromSrs(c.polish_word));
+  return chars.filter(c => !isIgnoredFromSrs(c.id));
 }
 
 
@@ -534,68 +511,141 @@ function renderLevel(level, index = 0) {
           ? `<button class="next-btn" onclick="location.hash='#/level/${level}/${index + 1}'">→</button>`
           : `<button class="next-btn" onclick="finishLevel(${level})">✓</button>`
       }
-      <button class="speak-btn" onclick="speak('${c.polish_word}')">🔊</button>
+      <button class="speak-btn" onclick="speak('${c.pl}')">🔊</button>
     </div>
-
-    <h1>Level ${level}</h1>
 
     <div class="char-card">
-      <div class="progress">${index + 1} / ${chars.length}</div>
-      <div class="russian_translation">${c.russian_translation}</div>
-      <div class="polish_word-row">
-        <button id="reveal-letter" class="secondary-btn">+</button>
-        <button id="toggle-meaning" class="secondary-btn">Open</button>
-      </div>
-
-      <div id="example-masked" style="display:block">
-        <p class="section">${maskWordInUsage(c.usage_example, c.polish_word) || ""}</p>
-      </div>
-
-      <div id="meaning-full" style="display:none">
-        <p class="section">${c.usage_example || ""}</p>
-
-        <h1>Description</h1>
-        <p class="section">${c.polish_description || ""}</p>
-
-        <h1>Description</h1>
-        <p class="section">${c.russian_description || ""}</p>
-      </div>
+      <div class="russian_translation">${c.ru}</div>
+      <div id="sentence-reveal"></div>
     </div>
   `;
+  initSentenceReveal("sentence-reveal", c.pl);
+}
 
-  const toggleBtn = document.getElementById("toggle-meaning");
-  const revealBtn = document.getElementById("reveal-letter");
-  const masked = document.getElementById("example-masked");
-  const full = document.getElementById("meaning-full");
-
-  toggleBtn.onclick = () => {
-    speak(c.polish_word);
-    masked.style.display = "none";
-    full.style.display = "block";
-    toggleBtn.style.display = "none";
-    revealBtn.style.display = "none";
+function createRevealState(sentence) {
+  return {
+    chars: sentence.split("").map(ch => ({
+      original: ch,
+      revealed: false
+    })),
+    index: 0
   };
+}
 
-  revealIndex = 0;
-
-  revealBtn.onclick = () => {
-    revealIndex++;
-
-    const text = revealWordStep(
-      c.usage_example,
-      c.polish_word,
-      revealIndex
-    );
-
-    masked.innerHTML = `<p class="section">${text}</p>`;
-
-    // если слово раскрыто полностью — прячем кнопку
-    if (revealIndex >= c.polish_word.length) {
-      revealBtn.style.display = "none";
-      toggleBtn.click();
+function buildMaskedSentence(state) {
+  return state.chars.map(ch => {
+    if (ch.original === " " || ch.original === "," || ch.original === "." || ch.original === "?") {
+      return ch.original;
     }
-  };
 
+    return ch.revealed ? ch.original : "*";
+  }).join("");
+}
+
+function revealOneLetter(state) {
+  while (
+    state.index < state.chars.length &&
+    (
+      state.chars[state.index].original === " " ||
+      state.chars[state.index].original === "," ||
+      state.chars[state.index].original === "." ||
+      state.chars[state.index].original === "?"
+    )
+  ) {
+    state.index++;
+  }
+
+  if (state.index >= state.chars.length) return;
+
+  state.chars[state.index].revealed = true;
+  state.index++;
+}
+
+function initSentenceReveal(containerId, sentence) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const state = createRevealState(sentence);
+
+  function render() {
+    const fullyRevealed = isFullyRevealed(state);
+
+    container.innerHTML = `
+      <div class="pl-row" style="${fullyRevealed ? 'display:none;' : ''}">
+        <button id="reveal-letter" class="secondary-btn">+</button>
+        <button id="reveal-word" class="secondary-btn">++</button>
+        <button id="reveal-all" class="secondary-btn">+++</button>
+      </div>
+      <p class="pl-translation">${buildMaskedSentence(state)}</p>
+    `;
+
+    if (!fullyRevealed) {
+      document.getElementById("reveal-letter").onclick = () => {
+        revealOneLetter(state);
+        render();
+      };
+
+      document.getElementById("reveal-word").onclick = () => {
+        revealWholeWord(state);
+        render();
+      };
+
+      document.getElementById("reveal-all").onclick = () => {
+        revealAll(state);
+        render();
+      };
+    };
+  }
+
+  render();
+}
+function revealAll(state) {
+  state.chars.forEach(ch => {
+    if (
+      ch.original !== " " &&
+      ch.original !== "," &&
+      ch.original !== "." &&
+      ch.original !== "?"
+    ) {
+      ch.revealed = true;
+    }
+  });
+
+  state.index = state.chars.length;
+}
+
+function revealWholeWord(state) {
+  while (
+    state.index < state.chars.length &&
+    (
+      state.chars[state.index].original === " " ||
+      state.chars[state.index].original === "," ||
+      state.chars[state.index].original === "." ||
+      state.chars[state.index].original === "?"
+    )
+  ) {
+    state.index++;
+  }
+
+  while (
+    state.index < state.chars.length &&
+    state.chars[state.index].original !== " " &&
+    state.chars[state.index].original !== "," &&
+    state.chars[state.index].original !== "." &&
+    state.chars[state.index].original !== "?"
+  ) {
+    state.chars[state.index].revealed = true;
+    state.index++;
+  }
+}
+function isFullyRevealed(state) {
+  return state.chars.every(ch =>
+    ch.original === " " ||
+    ch.original === "," ||
+    ch.original === "." ||
+    ch.original === "?" ||
+    ch.revealed
+  );
 }
 
 function ignoreCurrentSrsChar() {
@@ -604,7 +654,7 @@ function ignoreCurrentSrsChar() {
 
   const c = session.chars[session.index];
 
-  ignoreCharFromSrs(c.polish_word);
+  ignoreCharFromSrs(c.id);
 
   // сразу убираем из текущей сессии
   session.chars.splice(session.index, 1);
@@ -642,77 +692,18 @@ function renderSrs() {
       <button class="next-srs-btn"  onclick="nextSrs()">
         ${isLast ? "✓" : "→"}
       </button>
-      <button class="speak-btn" onclick="speak('${c.polish_word}')">🔊</button>
+      <button class="speak-btn" onclick="speak('${c.pl}')">🔊</button>
     </div>
 
     <h1>SRS</h1>
 
     <div class="char-card">
       <div class="progress">${index + 1} / ${chars.length}</div>
-      <div class="russian_translation">${c.russian_translation}</div>
-      <div class="polish_word-row">
-        <button id="reveal-letter" class="secondary-btn">+</button>
-        <button id="toggle-meaning" class="secondary-btn">Open</button>
-      </div>
-
-      <div id="example-masked" style="display:block">
-        <p class="section">${maskWordInUsage(c.usage_example, c.polish_word) || ""}</p>
-      </div>
-
-      <div id="meaning-full" style="display:none">
-        <p class="section">${c.usage_example || ""}</p>
-
-        <h1>Description</h1>
-        <p class="section">${c.polish_description || ""}</p>
-
-        <h1>Description</h1>
-        <p class="section">${c.russian_description || ""}</p>
-      </div>
+      <div class="russian_translation">${c.ru}</div>
+      <div id="sentence-reveal"></div>
     </div>
   `;
-
-  const toggleBtn = document.getElementById("toggle-meaning");
-  const revealBtn = document.getElementById("reveal-letter");
-  const masked = document.getElementById("example-masked");
-  const full = document.getElementById("meaning-full");
-
-  toggleBtn.onclick = () => {
-    speak(c.polish_word);
-    masked.style.display = "none";
-    full.style.display = "block";
-    toggleBtn.style.display = "none";
-    revealBtn.style.display = "none";
-  };
-
-  revealIndex = 0;
-
-  revealBtn.onclick = () => {
-    revealIndex++;
-
-    const text = revealWordStep(
-      c.usage_example,
-      c.polish_word,
-      revealIndex
-    );
-
-    masked.innerHTML = `<p class="section">${text}</p>`;
-
-    // если слово раскрыто полностью — прячем кнопку
-    if (revealIndex >= c.polish_word.length) {
-      revealBtn.style.display = "none";
-      toggleBtn.click();
-    }
-  };
-}
-
-function maskWordInUsage(usage, word) {
-  if (!usage || !word) return usage;
-
-  const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const mask = "*".repeat(word.length);
-
-  const regex = new RegExp(escaped, "gi");
-  return usage.replace(regex, mask);
+  initSentenceReveal("sentence-reveal", c.pl);
 }
 
 function nextSrs() {
@@ -783,67 +774,16 @@ function renderSrsMonth() {
   html += `</div>`;
   return html;
 }
-function ignoreCharFromSrs(polish_word) {
+function ignoreCharFromSrs(id) {
   const progress = getProgress();
   progress.ignoredFromSrs ||= {};
-  progress.ignoredFromSrs[polish_word] = true;
+  progress.ignoredFromSrs[id] = true;
   saveProgress(progress);
 }
 
-function isIgnoredFromSrs(polish_word) {
+function isIgnoredFromSrs(id) {
   const progress = getProgress();
-  return !!progress.ignoredFromSrs?.[polish_word];
-}
-function handleSwipe() {
-  const diff = touchEndX - touchStartX;
-  if (Math.abs(diff) < 300) return;
-
-  const hash = location.hash;
-
-  // ---------- LEVEL ----------
-  if (hash.startsWith("#/level/")) {
-    const match = hash.match(/^#\/level\/(\d+)(?:\/(\d+))?/);
-    if (!match) return;
-
-    const level = parseInt(match[1], 10);
-    const index = parseInt(match[2] || "0", 10);
-    const charsCount = getCharsForLevel(level).length;
-
-    // swipe left → next char / finish level
-    if (diff < 0) {
-      if (index < charsCount - 1) {
-        location.hash = `#/level/${level}/${index + 1}`;
-      } else {
-        finishLevel(level);
-      }
-    }
-
-    // swipe right → prev char / back to main
-    if (diff > 0) {
-      if (index > 0) {
-        location.hash = `#/level/${level}/${index - 1}`;
-      } else {
-        location.hash = "#";
-      }
-    }
-    return;
-  }
-
-  // ---------- SRS ----------
-  if (hash === "#/srs") {
-    // swipe left → next SRS card
-    if (diff < 0) {
-      nextSrs();
-    }
-
-    // swipe right → exit SRS
-    if (diff > 0) {
-      location.hash = "#";
-      window.location.reload();
-    }
-
-    return;
-  }
+  return !!progress.ignoredFromSrs?.[id];
 }
 
 let touchStartX = 0;
@@ -852,11 +792,6 @@ let touchStartTime = 0;
 
 document.addEventListener("touchstart", e => {
   touchStartX = e.changedTouches[0].screenX;
-});
-
-document.addEventListener("touchend", e => {
-  touchEndX = e.changedTouches[0].screenX;
-  handleSwipe();
 });
 
 (async function init() {

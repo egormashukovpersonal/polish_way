@@ -89,15 +89,17 @@ button {
 }
 
 .russian_translation {
-  font-size: 100px;
+  font-size: 80px;
   text-align: center;
+  font-family: monospace;
+  margin-top: 30px;
 }
-.polish_word {
-  font-size: 60px;
+
+.pl-translation {
+  font-size: 80px;
   text-align: center;
-}
-.section {
-  font-size: 60px;
+  font-family: monospace;
+  margin-bottom: 800px;
 }
 
 .progress {
@@ -121,18 +123,30 @@ button {
 }
 #reveal-letter {
   position: fixed;
-  width: calc(30% - 20px - 20px);
+  width: calc(30% - 20px);
   z-index: 99;
   bottom: 300px;
   right: 20px;
 }
-
-.polish_word-row {
+#reveal-word {
+  position: fixed;
+  width: calc(30% - 20px);
+  z-index: 99;
+  bottom: 300px;
+  right: calc(30% + 20px);
+}
+#reveal-all {
+  position: fixed;
+  width: calc(30% - 20px);
+  z-index: 99;
+  bottom: 300px;
+  right: calc(60% + 20px);
+}
+.pl-row {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-top: 8px;
 }
 
 .speak-btn {
@@ -210,12 +224,6 @@ button.locked {
   border: none;
   font-size: 50px;
 }
-.toggle-translations {
-  width: 10%;
-  background: none !important;
-  border: none;
-  font-size: 50px;
-}
 .srs-reset-ignored {
   width: 50%;
   font-size: 50px;
@@ -261,10 +269,6 @@ h1 {
   left: 0px;
   padding-bottom: 120px;
   padding-top: 20px;
-}
-
-#meaning-full {
-  padding-bottom: 400px;
 }
 
 button.completed .level-number{

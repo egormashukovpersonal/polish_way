@@ -497,6 +497,21 @@ function finishLevel(level) {
   setTimeout(scrollBottom, 0);
 }
 
+function finishAndGoNext(level) {
+  markLevelCompleted(level);
+
+  const nextLevel = level + 1;
+
+  // если следующий уровень доступен — открыть его
+  if (!isLevelEmpty(nextLevel)) {
+    location.hash = `#/level/${nextLevel}`;
+  } else {
+    location.hash = "#";
+  }
+
+  window.location.reload();
+}
+
 function renderLevel(level, index = 0) {
   const chars = getCharsForLevel(level);
   const c = chars[index];
@@ -506,10 +521,11 @@ function renderLevel(level, index = 0) {
   app.innerHTML = `
     <div class="fixed-bottom">
       <button class="back-btn" onclick="goBack(${level}, ${index})">←</button>
+
       ${
         !isLast
           ? `<button class="next-btn" onclick="location.hash='#/level/${level}/${index + 1}'">→</button>`
-          : `<button class="next-btn" onclick="finishLevel(${level})">✓</button>`
+          : `<button class="next-btn" onclick="finishAndGoNext(${level})">→</button>`
       }
       <button class="speak-btn" onclick="speak('${c.pl}')">🔊</button>
     </div>

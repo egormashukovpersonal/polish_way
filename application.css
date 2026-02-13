@@ -123,24 +123,31 @@ button {
 }
 #reveal-letter {
   position: fixed;
-  width: calc(30% - 20px);
+  width: calc(24% - 20px);
   z-index: 99;
   bottom: 300px;
   right: 20px;
 }
 #reveal-word {
   position: fixed;
-  width: calc(30% - 20px);
+  width: calc(24% - 20px);
   z-index: 99;
   bottom: 300px;
-  right: calc(30% + 20px);
+  right: calc(24% + 20px);
 }
 #reveal-all {
   position: fixed;
-  width: calc(30% - 20px);
+  width: calc(24% - 20px);
   z-index: 99;
   bottom: 300px;
-  right: calc(60% + 20px);
+  right: calc(48% + 20px);
+}
+#repeat-btn {
+  position: fixed;
+  width: calc(26% - 20px);
+  z-index: 99;
+  bottom: 300px;
+  right: calc(72% + 20px);
 }
 .pl-row {
   display: flex;
@@ -157,7 +164,6 @@ button {
   float: right;
   margin-right: 2%;
 }
-
 button.completed {
   background: #2ecc71;
   color: #000;

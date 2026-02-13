@@ -512,6 +512,16 @@ function finishAndGoNext(level) {
   window.location.reload();
 }
 
+function resetReveal(state) {
+  state.chars.forEach(ch => {
+    if (!isSeparator(ch.original)) {
+      ch.revealed = false;
+    }
+  });
+
+  state.index = 0;
+}
+
 function renderLevel(level, index = 0) {
   const chars = getCharsForLevel(level);
   const c = chars[index];
@@ -607,10 +617,13 @@ function initSentenceReveal(containerId, sentence) {
     const fullyRevealed = isFullyRevealed(state);
 
     container.innerHTML = `
-      <div class="pl-row" style="${fullyRevealed ? 'display:none;' : ''}">
-        <button id="reveal-letter" class="secondary-btn">+</button>
-        <button id="reveal-word" class="secondary-btn">++</button>
-        <button id="reveal-all" class="secondary-btn">+++</button>
+      <div class="pl-row">
+        <button id="repeat-btn" class="secondary-btn">↺</button>
+        <div style="${fullyRevealed ? 'display:none;' : ''}">
+          <button id="reveal-letter" class="secondary-btn">+</button>
+          <button id="reveal-word" class="secondary-btn">++</button>
+          <button id="reveal-all" class="secondary-btn">+++</button>
+        </div>
       </div>
       <p class="pl-translation">${buildMaskedSentence(state)}</p>
     `;
@@ -630,6 +643,10 @@ function initSentenceReveal(containerId, sentence) {
         revealAll(state);
         render();
       };
+    }
+    document.getElementById("repeat-btn").onclick = () => {
+      resetReveal(state);
+      render();
     };
   }
 

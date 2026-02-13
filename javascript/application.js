@@ -543,23 +543,43 @@ function buildMaskedSentence(state) {
 }
 
 function revealOneLetter(state) {
+  // пропускаем сепараторы
   while (
     state.index < state.chars.length &&
-    (
-      state.chars[state.index].original === " " ||
-      state.chars[state.index].original === "," ||
-      state.chars[state.index].original === "." ||
-      state.chars[state.index].original === "?"
-    )
+    isSeparator(state.chars[state.index].original)
   ) {
     state.index++;
   }
 
   if (state.index >= state.chars.length) return;
 
+  // раскрываем букву
   state.chars[state.index].revealed = true;
+
+  const { start, end } = getWordBounds(state, state.index);
+
+  // проверяем — всё ли слово раскрыто
+  let fullyRevealed = true;
+  for (let i = start; i < end; i++) {
+    if (!state.chars[i].revealed) {
+      fullyRevealed = false;
+      break;
+    }
+  }
+
+  if (fullyRevealed) {
+    const word = state.chars
+      .slice(start, end)
+      .map(ch => ch.original)
+      .join("");
+
+    speak(word);
+  }
+
   state.index++;
 }
+
+
 
 function initSentenceReveal(containerId, sentence) {
   const container = document.getElementById(containerId);
@@ -615,29 +635,78 @@ function revealAll(state) {
 }
 
 function revealWholeWord(state) {
+  // пропускаем сепараторы
   while (
     state.index < state.chars.length &&
-    (
-      state.chars[state.index].original === " " ||
-      state.chars[state.index].original === "," ||
-      state.chars[state.index].original === "." ||
-      state.chars[state.index].original === "?"
-    )
+    isSeparator(state.chars[state.index].original)
   ) {
     state.index++;
   }
 
-  while (
-    state.index < state.chars.length &&
-    state.chars[state.index].original !== " " &&
-    state.chars[state.index].original !== "," &&
-    state.chars[state.index].original !== "." &&
-    state.chars[state.index].original !== "?"
-  ) {
-    state.chars[state.index].revealed = true;
-    state.index++;
+  if (state.index >= state.chars.length) return;
+
+  const { start, end } = getWordBounds(state, state.index);
+
+  for (let i = start; i < end; i++) {
+    state.chars[i].revealed = true;
   }
+
+  const word = state.chars
+    .slice(start, end)
+    .map(ch => ch.original)
+    .join("");
+
+  speak(word);
+
+  state.index = end;
 }
+
+
+function isSeparator(ch) {
+  return ch === " " || ch === "," || ch === "." || ch === "?";
+}
+function getWordBounds(state, fromIndex) {
+  let start = fromIndex;
+
+  // найти начало слова
+  while (
+    start > 0 &&
+    !isSeparator(state.chars[start - 1].original)
+  ) {
+    start--;
+  }
+
+  let end = fromIndex;
+
+  // найти конец слова
+  while (
+    end < state.chars.length &&
+    !isSeparator(state.chars[end].original)
+  ) {
+    end++;
+  }
+
+  return { start, end };
+}
+
+function getWordFromIndex(state, startIndex) {
+  let word = "";
+  let i = startIndex;
+
+  while (
+    i < state.chars.length &&
+    state.chars[i].original !== " " &&
+    state.chars[i].original !== "," &&
+    state.chars[i].original !== "." &&
+    state.chars[i].original !== "?"
+  ) {
+    word += state.chars[i].original;
+    i++;
+  }
+
+  return word;
+}
+
 function isFullyRevealed(state) {
   return state.chars.every(ch =>
     ch.original === " " ||

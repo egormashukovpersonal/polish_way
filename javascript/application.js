@@ -1,4 +1,4 @@
-const LEVELS_PER_ROW = 4;
+const LEVELS_PER_ROW = 1;
 const TURN_LENGTH = 0;
 const WORDS_PER_LEVEL = 1;
 
@@ -139,7 +139,7 @@ function renderPath() {
 
   const visibleLevels = [];
   for (let lvl = 1; lvl <= totalLevels; lvl++) {
-    if (!isLevelEmpty(lvl)) {
+    if (!isLevelEmpty(lvl) && !isLevelCompleted(lvl)) {
       visibleLevels.push(lvl);
     }
   }

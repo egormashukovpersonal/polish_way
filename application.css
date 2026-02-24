@@ -12,6 +12,11 @@ html, body {
   user-select: none;
 }
 
+.pl-translation,
+.russian_translation {
+  -webkit-user-select: text;
+  user-select: text;
+}
 #srs-btn {
   float: right;
   background: linear-gradient(135deg, #8e44ad, #3498db);

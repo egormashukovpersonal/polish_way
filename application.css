@@ -12,6 +12,7 @@ html, body {
   user-select: none;
 }
 
+.char-card,
 .pl-translation,
 .russian_translation {
   -webkit-user-select: text;

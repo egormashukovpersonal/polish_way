@@ -1,4 +1,8 @@
+let SPEAK_MUTED = localStorage.getItem("speakMuted") === "true";
+
 function speak(text) {
+  if (SPEAK_MUTED) return;
+
   const u = new SpeechSynthesisUtterance(text);
   u.lang = "pl-PL";
   u.rate = 1;   // польский лучше чуть медленнее
@@ -26,4 +30,15 @@ function speak(text) {
   } else {
     pickVoice();
   }
+}
+
+function toggleSpeakMute() {
+  SPEAK_MUTED = !SPEAK_MUTED;
+
+  localStorage.setItem("speakMuted", SPEAK_MUTED);
+
+  const btn = document.getElementById("speak-mute-btn");
+  if (!btn) return;
+
+  btn.textContent = SPEAK_MUTED ? "🔇" : "🔊";
 }

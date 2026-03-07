@@ -204,7 +204,13 @@ button.locked {
   border: none;
   margin-left: 20px;
 }
-
+#speak-mute-btn {
+  background: none !important;
+  width: 7%;
+  margin-left: 20px;
+  border: none !important;
+  font-size: 70px;
+}
 .dev-toggle {
   background: none;
   width: 8%;

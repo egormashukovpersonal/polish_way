@@ -84,8 +84,14 @@ function restoreProgressToLevel(level) {
   const progress = getProgress();
   progress.completedLevels ||= {};
 
+  const maxId = Math.max(...HSK.map(c => c.id));
+  const totalLevels = Math.ceil(maxId / WORDS_PER_LEVEL);
+
+  console.log('[Egor]', totalLevels)
   for (let i = 1; i < level; i++) {
-    progress.completedLevels[i] = true;
+    if (i < totalLevels) {
+      progress.completedLevels[i] = true;
+    }
   }
 
   saveProgress(progress);
@@ -99,7 +105,7 @@ function getHumanSrsLimit() {
 
 function getSrsLimit() {
   const progress = getProgress();
-  return progress.settings?.srsLimit || 10;
+  return progress.settings?.srsLimit || 9999999;
 }
 
 function setSrsLimit(value) {
